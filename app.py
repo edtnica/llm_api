@@ -44,6 +44,7 @@ def summarize_reviews():
             model="deepseek/deepseek-chat-v3-0324:free",
             messages=[{"role": "user", "content": prompt}],
             extra_headers={
+                "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
                 "HTTP-Referer": "https://naviwheel.com",
                 "X-Title": "NaviWheel App"
             }
