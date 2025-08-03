@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from openai import OpenAI
 from dotenv import load_dotenv
+import httpx
 import os
 
 load_dotenv()
@@ -20,6 +21,8 @@ print("🔐 Loaded API key:", os.getenv("OPENROUTER_API_KEY"))
 @app.route("/")
 def index():
     return "✅ LLM Review Summarizer is running!"
+
+import httpx
 
 @app.route("/summarize_reviews", methods=["POST"])
 def summarize_reviews():
@@ -40,22 +43,31 @@ def summarize_reviews():
     )
 
     try:
-        completion = client.chat.completions.create(
-            model="deepseek/deepseek-chat-v3-0324:free",
-            messages=[{"role": "user", "content": prompt}],
-            extra_headers={
-                "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
-                "HTTP-Referer": "https://naviwheel.com",
-                "X-Title": "NaviWheel App"
-            }
-        )
-        summary = completion.choices[0].message.content.strip()
+        headers = {
+            "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://naviwheel.com",
+            "X-Title": "NaviWheel App"
+        }
+
+        payload = {
+            "model": "deepseek/deepseek-chat-v3-0324:free",
+            "messages": [
+                {"role": "user", "content": prompt}
+            ]
+        }
+
+        response = httpx.post("https://openrouter.ai/api/v1/chat/completions", json=payload, headers=headers)
+        response.raise_for_status()
+
+        summary = response.json()["choices"][0]["message"]["content"].strip()
         print("✅ Summary generated successfully.")
         return jsonify({"summary": summary})
 
     except Exception as e:
-        print("❌ Error during summarization:", str(e))  # Add this line
+        print("❌ Error during summarization:", str(e))
         return jsonify({"error": str(e)}), 500
+
 
 
 # Only used locally
