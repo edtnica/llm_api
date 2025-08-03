@@ -15,6 +15,8 @@ client = OpenAI(
     api_key=os.getenv("OPENROUTER_API_KEY")
 )
 
+print("🔐 Loaded API key:", os.getenv("OPENROUTER_API_KEY"))
+
 @app.route("/")
 def index():
     return "✅ LLM Review Summarizer is running!"
