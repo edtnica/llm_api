@@ -1,28 +1,20 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from openai import OpenAI
 from dotenv import load_dotenv
-import httpx
 import os
+import requests
+import json
 
 load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
-# Use environment variable for safety
-client = OpenAI(
-    base_url="https://openrouter.ai/api/v1",
-    api_key=os.getenv("OPENROUTER_API_KEY")
-)
-
-print("🔐 Loaded API key:", os.getenv("OPENROUTER_API_KEY"))
+API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 @app.route("/")
 def index():
     return "✅ LLM Review Summarizer is running!"
-
-import httpx
 
 @app.route("/summarize_reviews", methods=["POST"])
 def summarize_reviews():
@@ -44,10 +36,10 @@ def summarize_reviews():
 
     try:
         headers = {
-            "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
+            "Authorization": f"Bearer {API_KEY}",
             "Content-Type": "application/json",
-            "HTTP-Referer": "https://naviwheel.com",
-            "X-Title": "NaviWheel App"
+            "HTTP-Referer": "https://naviwheel.com",  # Optional
+            "X-Title": "NaviWheel App"  # Optional
         }
 
         payload = {
@@ -57,19 +49,27 @@ def summarize_reviews():
             ]
         }
 
-        response = httpx.post("https://openrouter.ai/api/v1/chat/completions", json=payload, headers=headers)
-        response.raise_for_status()
+        response = requests.post(
+            url="https://openrouter.ai/api/v1/chat/completions",
+            headers=headers,
+            data=json.dumps(payload)
+        )
+
+        print("📤 Raw response status:", response.status_code)
+        print("📤 Raw response body:", response.text)
+
+        if response.status_code != 200:
+            return jsonify({"error": f"Error code: {response.status_code} - {response.text}"}), 500
 
         summary = response.json()["choices"][0]["message"]["content"].strip()
         print("✅ Summary generated successfully.")
         return jsonify({"summary": summary})
 
     except Exception as e:
-        print("❌ Error during summarization:", str(e))
+        print("❌ Exception during summarization:", str(e))
         return jsonify({"error": str(e)}), 500
 
 
-
-# Only used locally
+# Local development only
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
