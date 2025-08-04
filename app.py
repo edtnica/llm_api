@@ -10,8 +10,7 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
-# API_KEY = os.getenv("OPENROUTER_API_KEY")
-API_KEY = "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"
+API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 @app.route("/")
 def index():
@@ -39,8 +38,6 @@ def summarize_reviews():
         headers = {
             "Authorization": f"Bearer {API_KEY}",
             "Content-Type": "application/json",
-            "HTTP-Referer": "https://naviwheel.com",  # Optional
-            "X-Title": "NaviWheel App"  # Optional
         }
 
         payload = {
