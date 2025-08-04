@@ -10,7 +10,8 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
-API_KEY = os.getenv("OPENROUTER_API_KEY")
+# API_KEY = os.getenv("OPENROUTER_API_KEY")
+API_KEY = "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"
 
 @app.route("/")
 def index():
